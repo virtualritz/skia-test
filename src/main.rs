@@ -18,7 +18,7 @@ fn main() {
     let mut bitmap = sk::Bitmap::new();
     bitmap.alloc_pixels_flags(&image_info);
     let mut canvas = sk::Canvas::from_bitmap(&bitmap, None);
-    canvas.clear(sk::Color::WHITE);
+    //canvas.clear(sk::Color::WHITE);
 
     let fps = 60;
     let bpm = 60;

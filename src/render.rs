@@ -13,8 +13,8 @@ const DEGREES_IN_RADIANS: f32 = TAU / 90.0;
 const PEN_SIZE: f32 = 1.0;
 
 // We assume all the hex colors from the original example are in sRGB
-// with a 2.4 gamma transfer function baked in. This is used to convert
-// them to linear sRGB.
+// with a 2.4 gamma display-referred transfer function baked in.
+// This is used to convert them to scene-referred, linear sRGB.
 fn srgb_u8_to_srgb_linear_f32(x: u8) -> f32 {
     let x = x as f32 / 255.0;
     if x < 0.04045 {
@@ -26,12 +26,6 @@ fn srgb_u8_to_srgb_linear_f32(x: u8) -> f32 {
 
 fn color_to_color4f(color: impl Into<sk::Color>) -> sk::Color4f {
     let color: sk::Color = color.into();
-    println!("{},{},{},{}",
-        color.r(),
-        color.g(),
-        color.b(),
-        color.a(),
-    );
     sk::Color4f::new(
         srgb_u8_to_srgb_linear_f32(color.r()),
         srgb_u8_to_srgb_linear_f32(color.g()),
@@ -278,7 +272,7 @@ fn chain_ring(
         &mut paint,
         (0.0, -ridge_radius),
         (2.0 * ridge_radius, 2.0 * ridge_radius),
-        (sk::Color::from(0xff_592e1f), sk::Color::from(0xff_885543)),
+        (color_to_color4f(0xff_592e1f), color_to_color4f(0xff_885543)),
     );
     canvas.draw_circle(center, ridge_radius, &paint);
 
@@ -294,8 +288,6 @@ fn triangle(
     color: sk::Color,
     wankel: bool,
 ) {
-    println!("{}", color.a());
-
     let c = (center.0 as f32, center.1 as f32);
     let r = radius as f32;
     let b = r * 0.9;
@@ -330,7 +322,7 @@ fn triangle(
                 &mut paint,
                 center,
                 radii,
-                (color, sk::Color::from(0xff_0000ff)),
+                (color_to_color4f(color), color_to_color4f(0xff_0000ff)),
             )
         }
         None => {
@@ -379,14 +371,14 @@ fn gradient(
     paint: &mut sk::Paint,
     center: (f32, f32),
     radii: (f32, f32),
-    colors: (sk::Color, sk::Color),
+    colors: (sk::Color4f, sk::Color4f),
 ) {
     let mut matrix = sk::Matrix::scale((1.0, radii.1 / radii.0));
     matrix.post_translate((center.0, center.1));
     paint.set_shader(sk::gradient_shader::radial(
         (0.0, 0.0),
         radii.0,
-        ([color_to_color4f(colors.0), color_to_color4f(colors.1)].as_ref(), srgb_linear!()),
+        ([colors.0, colors.1].as_ref(), srgb_linear!()),
         None,
         sk::TileMode::Clamp,
         None,
